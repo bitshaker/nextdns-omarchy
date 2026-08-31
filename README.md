@@ -2,6 +2,8 @@
 
 A native Omarchy bar widget for the NextDNS CLI. It shows whether NextDNS is active, opens a detail panel, switches profiles, and turns NextDNS on or off.
 
+![NextDNS Control panel](assets/nextdns-panel.png)
+
 ## What it does
 
 - Reads state with `nextdns status` and `nextdns config list`.
@@ -13,21 +15,29 @@ A native Omarchy bar widget for the NextDNS CLI. It shows whether NextDNS is act
 
 Installing the Omarchy plugin itself does not install packages or run setup commands.
 
+## Installation
+
+Add and enable the plugin from its public GitHub repository:
+
+```sh
+omarchy plugin add https://github.com/bitshaker/nextdns-omarchy.git --enable
+```
+
+The plugin does not install packages or modify NextDNS until you explicitly choose an action. If the CLI is missing, install it from the panel or run:
+
+```sh
+omarchy pkg aur add nextdns
+```
+
 ## Requirements
 
 - Omarchy 4 with the Quattro shell plugin system.
 - The NextDNS CLI from the AUR (`nextdns`).
 - A working graphical polkit agent. Omarchy provides one through its shell.
 
-The panel can open the AUR installation flow, or install manually:
-
-```sh
-omarchy pkg aur add nextdns
-```
-
 If the CLI is installed but not configured, entering a profile ID and choosing **Configure** runs the workstation setup with client reporting and automatic activation.
 
-## Development install
+## Validation
 
 The plugin ID is `bitshaker.nextdns-omarchy`. Validate it from the repository root:
 
