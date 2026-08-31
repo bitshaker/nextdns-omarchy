@@ -2,7 +2,7 @@
 
 A native Omarchy bar widget for the NextDNS CLI. It shows whether NextDNS is active, opens a detail panel, switches profiles, and turns NextDNS on or off.
 
-![NextDNS Control panel](assets/nextdns-panel.png)
+![NextDNS Control panel](preview.png)
 
 ## What it does
 
