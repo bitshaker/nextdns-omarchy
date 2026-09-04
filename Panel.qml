@@ -68,8 +68,10 @@ Panel {
   function persistProfiles(values) {
     var profiles = Profiles.normalize(values)
     var entry = { id: root.moduleName }
-    if (root.settings && root.settings.refreshIntervalSec !== undefined)
-      entry.refreshIntervalSec = root.settings.refreshIntervalSec
+    var interval = Number(root.settings && root.settings.refreshIntervalSec)
+    entry.refreshIntervalSec = isFinite(interval)
+      ? Math.max(5, Math.min(300, Math.round(interval)))
+      : 15
     entry.profiles = profiles
 
     // Update the live panel and bar immediately. The shell write then feeds
@@ -120,8 +122,9 @@ Panel {
       profileEditorError = "Enter a profile name"
       return
     }
-    if (name.length > 80) {
-      profileEditorError = "Profile names must be 80 characters or fewer"
+    if (name.length > Profiles.MAX_PROFILE_NAME_LENGTH
+        || /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/.test(name)) {
+      profileEditorError = "Profile names must be plain text up to 80 characters"
       return
     }
     if (id === "") {
@@ -139,6 +142,10 @@ Panel {
 
     if (editingProfileId === "" && duplicateIndex !== -1) {
       profileEditorError = "That profile ID is already saved"
+      return
+    }
+    if (editingProfileId === "" && values.length >= Profiles.MAX_PROFILES) {
+      profileEditorError = "Up to 32 profiles can be saved"
       return
     }
     if (editingProfileId !== "" && duplicateIndex !== -1 && duplicateIndex !== editIndex) {
@@ -457,6 +464,7 @@ Panel {
                 id: profileNameField
                 width: Math.max(Style.space(120), (parent.width - parent.spacing) * 0.58)
                 placeholderText: "Profile name"
+                maximumLength: Profiles.MAX_PROFILE_NAME_LENGTH
                 foreground: root.foreground
                 onAccepted: profileIdField.forceActiveFocus()
               }
@@ -465,6 +473,7 @@ Panel {
                 id: profileIdField
                 width: Math.max(Style.space(90), parent.width - profileNameField.width - parent.spacing)
                 placeholderText: "Profile ID"
+                maximumLength: 6
                 foreground: root.foreground
                 onAccepted: root.saveProfile()
               }

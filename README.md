@@ -6,10 +6,10 @@ A native Omarchy bar widget for the NextDNS CLI. It shows whether NextDNS is act
 
 ## What it does
 
-- Reads state with `nextdns status` and `nextdns config list`.
+- Reads state with the fixed `/usr/bin/nextdns` CLI after verifying that it belongs to the installed `nextdns` package and neither it nor its parent directories are group- or world-writable.
 - Activates or deactivates NextDNS through a graphical authorization prompt.
 - Changes the configured profile and restarts the service.
-- Adds, edits, and removes any number of named profiles directly in the panel.
+- Adds, edits, and removes up to 32 named profiles directly in the panel.
 - Detects a missing CLI and offers to open the Omarchy AUR installation command in a terminal.
 - Stores profile names and IDs in the local Omarchy bar configuration. The repository contains no profile IDs or NextDNS credentials.
 
@@ -52,17 +52,19 @@ qmllint -I "$OMARCHY_PATH/shell" BarWidget.qml Panel.qml NextDnsService.qml
 - Right click: turn NextDNS on or off.
 - Middle click: refresh status.
 - Panel switch: turn NextDNS on or off.
-- Profile button: change profile, then restart NextDNS.
+- Profile button: change profile and restart NextDNS in one privileged transaction and with one authorization prompt. If the change or restart fails, the previous profile is restored and restarted automatically.
 
 Turning NextDNS off means **system DNS**. The resolver selected by the operating system may be the network DNS or a configured fallback; the plugin does not label it as a particular NextDNS profile.
 
 ## Profiles
 
-Use **Add profile** beside **Refresh** to reveal the name and ID fields below the saved-profile list. Use the pencil button to edit an entry and the × button to remove it from the list. The editor stays collapsed until requested. Removing an entry does not delete the profile from NextDNS or change the currently active profile. Profile IDs are read from the NextDNS Setup page and are not API keys.
+Use **Add profile** beside **Refresh** to reveal the name and ID fields below the saved-profile list. Use the pencil button to edit an entry and the × button to remove it from the list. The editor stays collapsed until requested. Removing an entry does not delete the profile from NextDNS or change the currently active profile. Profile IDs are the six lowercase hexadecimal characters shown on the NextDNS Setup page and are not API keys. The plugin stores at most 32 profiles, and names are limited to 80 plain-text characters.
 
 ## Security
 
-Read-only status commands run as the desktop user. Mutating commands are direct `pkexec nextdns …` argument arrays—no password is stored and user-supplied profile IDs are validated before use. Package installation runs only after the user presses the install button and remains visible in a terminal.
+Read-only status commands run as the desktop user. All executable paths are fixed. Before use, the plugin verifies `/usr/bin/nextdns` belongs to the installed `nextdns` package; `/`, `/usr`, `/usr/bin`, and the executable are owned by UID 0 and are not group- or world-writable; and the exact executable path is a regular executable rather than a symlink. Mutating commands use fixed absolute executable paths under `pkexec`; no password is stored and user-supplied profile IDs must match `^[0-9a-f]{6}$`. A profile switch runs set, restart, and any required rollback inside one sanitized, fixed-script transaction with the validated IDs passed only as positional arguments, so it needs one authorization prompt. Every process has a deadline and bounded streaming output; displayed output is capped, stripped of control/bidirectional formatting characters, and rendered as plain text. Package installation runs only after the user presses the install button and remains visible in a terminal.
+
+The NextDNS CLI does not provide an atomic configure-and-restart command, and its systemd service does not support reload. Changing a profile therefore requires separate `nextdns config set` and `nextdns restart` operations. The plugin executes those operations within the single privileged transaction described above so that it can restore and restart the previous profile if either operation fails.
 
 ## Removal
 

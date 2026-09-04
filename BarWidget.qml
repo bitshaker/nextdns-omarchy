@@ -59,7 +59,10 @@ BarWidget {
 
   NextDnsService {
     id: nextdns
-    refreshIntervalSec: Number(root.setting("refreshIntervalSec", 15))
+    refreshIntervalSec: {
+      var value = Number(root.setting("refreshIntervalSec", 15))
+      return isFinite(value) ? Math.max(5, Math.min(300, Math.round(value))) : 15
+    }
   }
 
   Loader {
